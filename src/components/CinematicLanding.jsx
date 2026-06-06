@@ -5,7 +5,7 @@ import { initSmoothScroll } from '../lib/smoothScroll'
 import FrameSequence from './FrameSequence'
 import Chapter from './Chapter'
 import ChapterIndicator from './ChapterIndicator'
-import { STOPS } from '../lib/timeline'
+import { STOPS, INTRO_END } from '../lib/timeline'
 
 export default function CinematicLanding() {
   const rootRef = useRef(null)
@@ -13,6 +13,7 @@ export default function CinematicLanding() {
   const frameRef = useRef(null)
   const progressRef = useRef(0)
   const barRef = useRef(null)
+  const titleRef = useRef(null)
 
   useLayoutEffect(() => {
     initSmoothScroll()
@@ -27,10 +28,18 @@ export default function CinematicLanding() {
         pin: true,
         scrub: 1,
         onUpdate: (self) => {
-          progressRef.current = self.progress
-          if (frameRef.current) frameRef.current(self.progress)
-          if (barRef.current)
-            barRef.current.style.transform = `scaleX(${self.progress})`
+          const p = self.progress
+          progressRef.current = p
+          if (frameRef.current) frameRef.current(p)
+          if (barRef.current) barRef.current.style.transform = `scaleX(${p})`
+          // Hero title dissolves (fade + scale + blur) into the parallax.
+          if (titleRef.current) {
+            const intro = gsap.utils.clamp(0, 1, 1 - (p - 0.015) / (INTRO_END - 0.015))
+            titleRef.current.style.opacity = intro
+            titleRef.current.style.transform = `scale(${1 + (1 - intro) * 0.08})`
+            titleRef.current.style.filter = `blur(${(1 - intro) * 7}px)`
+            titleRef.current.style.pointerEvents = intro < 0.02 ? 'none' : 'auto'
+          }
         },
       })
     }, rootRef)
@@ -40,31 +49,7 @@ export default function CinematicLanding() {
 
   return (
     <div ref={rootRef}>
-      {/* Intro */}
-      <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-40"
-          style={{ backgroundImage: 'url(/frames/f030.webp)' }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0b0b0c]/72 via-[#0b0b0c]/45 to-[#0b0b0c]" />
-        <div className="relative flex flex-col items-center">
-          <p className="text-[11px] tracking-[0.5em] uppercase text-red-400/70 mb-7">
-            Scuderia Ferrari · Partnership Prospectus
-          </p>
-          <h1 className="font-[Fraunces] text-5xl md:text-8xl font-light text-center text-balance max-w-4xl px-6 leading-[1.05]">
-            Rosso Corsa
-          </h1>
-          <p className="mt-8 max-w-md text-center text-neutral-300/80 text-sm md:text-base leading-relaxed px-6">
-            An invitation to stand beside the most valuable name in motorsport —
-            presented in four moments.
-          </p>
-          <p className="mt-14 text-[11px] tracking-[0.35em] uppercase text-neutral-400 animate-pulse">
-            Scroll to begin
-          </p>
-        </div>
-      </section>
-
-      {/* Pinned cinematic section */}
+      {/* Pinned cinematic section — the piece starts here, in position */}
       <section ref={pinRef} className="h-screen w-full relative overflow-hidden">
         <FrameSequence ref={frameRef} progressRef={progressRef} />
 
@@ -101,6 +86,38 @@ export default function CinematicLanding() {
           <Chapter key={c.id} chapter={c} progressRef={progressRef} />
         ))}
         <ChapterIndicator chapters={STOPS} progressRef={progressRef} />
+
+        {/* Hero title overlay — black with the title, dissolves into the parallax */}
+        <div
+          ref={titleRef}
+          className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[#0b0b0c] will-change-[opacity,transform,filter]"
+          style={{ opacity: 1 }}
+        >
+          {/* faint shadow glow behind the title */}
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(60% 50% at 50% 45%, rgba(120,18,18,0.18), transparent 70%)',
+            }}
+          />
+          <div className="relative flex flex-col items-center">
+            <p className="text-[11px] tracking-[0.5em] uppercase text-red-400/70 mb-7">
+              Scuderia Ferrari · Partnership Prospectus
+            </p>
+            <h1 className="font-[Fraunces] text-5xl md:text-8xl font-light text-center text-balance max-w-4xl px-6 leading-[1.05]">
+              Rosso Corsa
+            </h1>
+            <p className="mt-8 max-w-md text-center text-neutral-300/80 text-sm md:text-base leading-relaxed px-6">
+              An invitation to stand beside the most valuable name in motorsport —
+              presented in four moments.
+            </p>
+            <p className="mt-14 text-[11px] tracking-[0.35em] uppercase text-neutral-400 animate-pulse">
+              Scroll to begin
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* Outro */}

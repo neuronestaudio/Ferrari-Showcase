@@ -12,16 +12,21 @@ export const FRAME_COUNT = 517
 //   03 → f340 (cockpit / driver)  04 → f500 (full car, front)
 const HERO = { s1: 29, s2: 179, s3: 339, s4: 499 }
 
+// Where the black title overlay finishes dissolving. Until here the canvas is
+// hidden behind the hero title — the piece "starts in the pinned position".
+export const INTRO_END = 0.1
+
 // Piecewise progress → frame index. Flat segments = HOLD plateaus.
-//   travel 0→01, HOLD 01, travel 01→02, HOLD 02, … , HOLD 04
+//   INTRO title-hold, travel 0→01, HOLD 01, … , HOLD 04
 const KNOTS = [
   [0.0, 0],
-  [0.07, HERO.s1],
-  [0.2, HERO.s1], // hold 01
-  [0.36, HERO.s2],
-  [0.49, HERO.s2], // hold 02
-  [0.63, HERO.s3],
-  [0.76, HERO.s3], // hold 03
+  [INTRO_END, 0], // intro title-hold (f001, hidden behind the title overlay)
+  [0.17, HERO.s1],
+  [0.3, HERO.s1], // hold 01
+  [0.42, HERO.s2],
+  [0.54, HERO.s2], // hold 02
+  [0.65, HERO.s3],
+  [0.77, HERO.s3], // hold 03
   [0.88, HERO.s4],
   [1.0, HERO.s4], // hold 04
 ]
@@ -62,7 +67,7 @@ export const STOPS = [
     title: 'The most coveted name in motorsport',
     body: 'Since 1950, one team has never missed a grid. To wear this red is not to sponsor a car — it is to take a place in history.',
     stats: ['Est. 1929', '16 Constructors’ Titles', 'Every season since 1950'],
-    hold: [0.07, 0.2],
+    hold: [0.17, 0.3],
   },
   {
     id: 1,
@@ -72,7 +77,7 @@ export const STOPS = [
     title: 'A thousand horsepower, finished by hand',
     body: 'Every surface is computed, every component hand-built and checked twice. This is the precise point where capital becomes velocity.',
     stats: ['1.6L V6 Turbo-Hybrid', '~1,000 bhp', '>15,000 rpm'],
-    hold: [0.36, 0.49],
+    hold: [0.42, 0.54],
   },
   {
     id: 2,
@@ -82,7 +87,7 @@ export const STOPS = [
     title: 'Your name, where the world is watching',
     body: 'A mark on this car is carried to a global audience across five continents, every other week, for an entire season.',
     stats: ['24 Grands Prix', '5 continents', '~750M global fans'],
-    hold: [0.63, 0.76],
+    hold: [0.65, 0.77],
   },
   {
     id: 3,
