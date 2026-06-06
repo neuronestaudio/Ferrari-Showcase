@@ -5,54 +5,7 @@ import { initSmoothScroll } from '../lib/smoothScroll'
 import FrameSequence from './FrameSequence'
 import Chapter from './Chapter'
 import ChapterIndicator from './ChapterIndicator'
-
-// Four quarter "stops". The scroll SNAPS to each `at`, settling the scrub on a
-// hand-picked, premium-rendered hero frame while its label rests at full opacity.
-//   at ≈ (targetFrame / 516) × SCRUB_END(0.92)
-//   01 → f030 (full car + crew)   02 → f180 (rear wing / engine)
-//   03 → f340 (cockpit / driver)  04 → f500 (full car, front)
-const STOPS = [
-  {
-    id: 0,
-    align: 'left',
-    num: '01',
-    kicker: 'The Marque',
-    title: 'The most coveted name in motorsport',
-    body: 'Since 1950, one team has never missed a grid. To wear this red is not to sponsor a car — it is to take a place in history.',
-    stats: ['Est. 1929', '16 Constructors’ Titles', 'Every season since 1950'],
-    at: 0.055,
-  },
-  {
-    id: 1,
-    align: 'right',
-    num: '02',
-    kicker: 'The Machine',
-    title: 'A thousand horsepower, finished by hand',
-    body: 'Every surface is computed, every component hand-built and checked twice. This is the precise point where capital becomes velocity.',
-    stats: ['1.6L V6 Turbo-Hybrid', '~1,000 bhp', '>15,000 rpm'],
-    at: 0.32,
-  },
-  {
-    id: 2,
-    align: 'left',
-    num: '03',
-    kicker: 'The Stage',
-    title: 'Your name, where the world is watching',
-    body: 'A mark on this car is carried to a global audience across five continents, every other week, for an entire season.',
-    stats: ['24 Grands Prix', '5 continents', '~750M global fans'],
-    at: 0.61,
-  },
-  {
-    id: 3,
-    align: 'right',
-    num: '04',
-    kicker: 'The Partnership',
-    title: 'Stand beside the prancing horse',
-    body: 'To appear here is to be chosen. A partnership with Ferrari remains the rarest and most enduring signal of prestige in world sport.',
-    stats: ['Maranello', 'By invitation', 'A legacy of winning'],
-    at: 0.89,
-  },
-]
+import { STOPS } from '../lib/timeline'
 
 export default function CinematicLanding() {
   const rootRef = useRef(null)
@@ -68,16 +21,11 @@ export default function CinematicLanding() {
       ScrollTrigger.create({
         trigger: pinRef.current,
         start: 'top top',
-        end: '+=9000',
+        // Longer pin so the HOLD plateaus read as real "scroll a few times"
+        // pauses, and the speed-ramped travel segments have room to breathe.
+        end: '+=14000',
         pin: true,
         scrub: 1,
-        // Snap the scrub to each quarter stop once the user pauses.
-        snap: {
-          snapTo: STOPS.map((s) => s.at),
-          duration: { min: 0.3, max: 0.8 },
-          delay: 0.08,
-          ease: 'power2.inOut',
-        },
         onUpdate: (self) => {
           progressRef.current = self.progress
           if (frameRef.current) frameRef.current(self.progress)

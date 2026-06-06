@@ -1,22 +1,32 @@
 import { useRef, useLayoutEffect } from 'react'
 import { gsap } from 'gsap'
 
-// Half-width of the fade window around each stop's `at`. With the scroll snapping
-// to the 4 stops, the active card rests at full opacity; cards fade out between.
-const FADE = 0.12
+// The label is visible only across its stop's HOLD band (when the frame is
+// frozen). It "pops" in quickly at the start of the hold, rests, then fades.
+const POP_IN = 0.028 // progress spent popping in
+const POP_OUT = 0.03 // progress spent fading out
+
+const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3)
 
 export default function Chapter({ chapter, progressRef }) {
   const elRef = useRef(null)
 
   useLayoutEffect(() => {
+    const [hs, he] = chapter.hold
     let raf
     const tick = () => {
       const p = progressRef.current
-      const dist = Math.abs(p - chapter.at)
-      const opacity = gsap.utils.clamp(0, 1, 1 - dist / FADE)
+      let v = 0
+      if (p >= hs && p <= he) {
+        if (p < hs + POP_IN) v = (p - hs) / POP_IN
+        else if (p > he - POP_OUT) v = (he - p) / POP_OUT
+        else v = 1
+      }
+      v = gsap.utils.clamp(0, 1, v)
+      const e = easeOutCubic(v)
       if (elRef.current) {
-        elRef.current.style.opacity = opacity
-        elRef.current.style.transform = `translateY(${(1 - opacity) * 24}px)`
+        elRef.current.style.opacity = v
+        elRef.current.style.transform = `translateY(${(1 - e) * 26}px) scale(${0.965 + 0.035 * e})`
       }
       raf = requestAnimationFrame(tick)
     }
@@ -32,7 +42,7 @@ export default function Chapter({ chapter, progressRef }) {
   return (
     <div
       ref={elRef}
-      className={`absolute top-1/2 -translate-y-1/2 ${sideClass} max-w-lg flex flex-col gap-5 will-change-[opacity,transform]`}
+      className={`absolute top-1/2 -translate-y-1/2 ${sideClass} max-w-lg flex flex-col gap-5 will-change-[opacity,transform] origin-center`}
       style={{ opacity: 0 }}
     >
       {/* localised scrim — supports legibility, fades out over the car */}

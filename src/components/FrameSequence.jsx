@@ -1,15 +1,9 @@
 import { useRef, useLayoutEffect, forwardRef } from 'react'
+import { FRAME_COUNT, frameIndexForProgress } from '../lib/timeline'
 
-// One continuous cinematic top-down push along a stationary Scuderia Ferrari F1
-// car (3840×2160 @ 30fps) → 517 frames re-extracted at 2560×1440 WebP:
-//   f001        wide on the full car in the pit box
-//   f001–f517   slow travel: rear wing → engine cover → cockpit → nose → front wing
-const FRAME_COUNT = 517
-// The clip resolves on a natural final frame (the full car) — no loop tail.
-const MAX_FRAME_INDEX = 517
-// Hold the final frame across the last 8% of scroll.
-const SCRUB_END = 0.92
-
+// Cinematic top-down push along a stationary Scuderia Ferrari F1 car
+// (3840×2160 @ 30fps) → 517 frames at 2560×1440 WebP. The scroll→frame mapping
+// (with HOLD plateaus at each stop) lives in ../lib/timeline.js.
 const frameUrl = (i) =>
   `/frames/f${String(i).padStart(3, '0')}.webp`
 
@@ -73,14 +67,9 @@ const FrameSequence = forwardRef(function FrameSequence({ progressRef }, ref) {
       ctx.drawImage(img, dx, dy, dw, dh)
     }
 
-    // map scroll progress -> frame index
+    // map scroll progress -> frame index (holds + speed-ramped travel in timeline.js)
     const render = (p) => {
-      const clamped = Math.min(p / SCRUB_END, 1)
-      const idx = Math.min(
-        Math.round(clamped * (MAX_FRAME_INDEX - 1)),
-        MAX_FRAME_INDEX - 1
-      )
-      drawFrame(idx)
+      drawFrame(frameIndexForProgress(p))
     }
 
     // initial paint once first frame loads

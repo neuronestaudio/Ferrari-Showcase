@@ -12,7 +12,8 @@ export default function ChapterIndicator({ chapters, progressRef }) {
       let active = 0
       let best = Infinity
       chapters.forEach((c, i) => {
-        const d = Math.abs(p - c.at)
+        const mid = (c.hold[0] + c.hold[1]) / 2
+        const d = Math.abs(p - mid)
         if (d < best) {
           best = d
           active = i
